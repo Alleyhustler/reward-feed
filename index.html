@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward Feed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #000;
+            color: #fff;
+            background-image: url('background.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            line-height: 1.4;
+        }
+
+        .overlay {
+            background: rgba(0, 0, 0, 0.94);
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px) saturate(180%);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 82px;
+            height: 82px;
+            background: url('logo.png') center/cover;
+            border-radius: 2px;
+        }
+
+        .title-group h1 {
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            text-transform: uppercase;
+        }
+
+        .title-group p {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .twitter-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+
+        .twitter-link:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn {
+            padding: 8px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #fff;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #000;
+            border: 1px solid #fff;
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 48px 32px;
+        }
+
+        .control-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 11px;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .timer-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .feed-grid {
+            display: grid;
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .meme-card {
+            background: #000;
+            transition: background 0.2s;
+        }
+
+        .meme-card:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .meme-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .meme-content {
+            padding: 24px;
+        }
+
+        .meme-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .meme-title {
+            font-size: 13px;
+            font-weight: 400;
+            color: #fff;
+            letter-spacing: -0.2px;
+        }
+
+        .meme-wallet {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+        }
+
+        .meme-actions {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .vote-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .vote-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            padding: 0;
+            font-size: 12px;
+            transition: color 0.2s;
+        }
+
+        .vote-btn:hover {
+            color: #fff;
+        }
+
+        .vote-count {
+            font-weight: 400;
+            font-size: 13px;
+            min-width: 40px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .reward-display {
+            margin-left: auto;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            padding: 8px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-display {
+            padding: 64px 32px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .file-input-display:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .system-log {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 380px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            z-index: 50;
+        }
+
+        .system-log-header {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .system-log-content {
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 10px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            color: rgba(255, 255, 255, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            letter-spacing: 0.3px;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.success {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sidebar {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: #000;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 200;
+            transition: right 0.3s;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-content {
+            padding: 32px;
+        }
+
+        .leaderboard-item {
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            grid-template-columns: 40px 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .rank {
+            font-size: 18px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+        }
+
+        .leaderboard-wallet {
+            font-size: 11px;
+            color: #fff;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .leaderboard-stats {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .leaderboard-reward {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: right;
+            letter-spacing: 0.5px;
+        }
+
+        .how-it-works {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 32px;
+            margin-top: 64px;
+        }
+
+        .how-it-works h3 {
+            font-size: 11px;
+            margin-bottom: 24px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .how-it-works ol {
+            margin-left: 20px;
+            line-height: 2;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        .how-it-works li {
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .control-bar {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .system-log {
+                width: calc(100% - 64px);
+            }
+
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo"></div>
+                    <div class="title-group">
+                        <h1>Reward Feed</h1>
+                        <p>Where memes meet the market</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="https://x.com/RewardFeed" target="_blank" class="twitter-link">Twitter</a>
+                    <button class="btn btn-primary" id="connectWallet">Connect Wallet</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="control-bar">
+                <button class="btn" id="uploadBtn">Upload Meme</button>
+                <button class="btn" id="topMemesBtn">Top Memes</button>
+                <button class="btn" id="leaderboardBtn">Leaderboard</button>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search wallet or tag">
+                </div>
+                <div class="timer-display" id="timer">
+                    NEXT REWARD: 10:00
+                </div>
+            </div>
+
+            <div class="feed-grid" id="memeFeed"></div>
+
+            <div class="how-it-works">
+                <h3>Protocol</h3>
+                <ol>
+                    <li>Connect your wallet</li>
+                    <li>Upload your meme to the on-chain feed</li>
+                    <li>Community votes determine reward ranking</li>
+                    <li>Every round, the top memes receive token grants from the Reward Pool</li>
+                    <li>Every meme lives permanently in the archive — a chain of culture</li>
+                </ol>
+                <button class="btn" style="margin-top: 24px;">View Contract</button>
+            </div>
+        </div>
+
+        <div class="modal" id="uploadModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Upload Meme</h2>
+                    <button class="close-btn" id="closeUploadModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm">
+                        <div class="form-group">
+                            <label>Image</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="memeFile" accept="image/*">
+                                <div class="file-input-display" id="fileDisplay">
+                                    SELECT IMAGE OR DROP FILE
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="memeTitle" required placeholder="Enter meme title">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="memeDescription" placeholder="Optional description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Wallet Address</label>
+                            <input type="text" id="memeWallet" placeholder="Auto-filled if connected" readonly>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Post to Feed</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar" id="leaderboardSidebar">
+            <div class="sidebar-header">
+                <h2>Top Earners</h2>
+                <button class="close-btn" id="closeLeaderboard">×</button>
+            </div>
+            <div class="sidebar-content" id="leaderboardContent"></div>
+        </div>
+
+        <div class="system-log">
+            <div class="system-log-header">[SYSTEM LOG]</div>
+            <div class="system-log-content" id="systemLog"></div>
+        </div>
+    </div>
+
+    <script>
+        let memes = [];
+        let walletConnected = false;
+        let walletAddress = '';
+        let rewardTimestamp = 0;
+        let filterTop = false;
+        let memeIdCounter = 6;
+
+        function init() {
+            const stored = localStorage.getItem('rewardTimestamp');
+            const now = Date.now();
+            
+            if (!stored || parseInt(stored) < now) {
+                rewardTimestamp = now + (10 * 60 * 1000);
+                localStorage.setItem('rewardTimestamp', rewardTimestamp.toString());
+            } else {
+                rewardTimestamp = parseInt(stored);
+            }
+
+            memes = [
+                { id: 1, title: 'When dev says liquidity locked', wallet: '0x9A1...8F2B', votes: 438, image: 'meme_placeholder.png', timestamp: now - 3600000 },
+                { id: 2, title: 'Solana went touch grass', wallet: '0x7D2...1E4C', votes: 392, image: 'meme_placeholder.png', timestamp: now - 7200000 },
+                { id: 3, title: 'Buy Button Missing', wallet: '0xB4F...7C1A', votes: 321, image: 'meme_placeholder.png', timestamp: now - 10800000 },
+                { id: 4, title: 'POV: You bought the top', wallet: '0x2E8...9D3F', votes: 287, image: 'meme_placeholder.png', timestamp: now - 14400000 },
+                { id: 5, title: 'HODL gang reporting', wallet: '0x5C1...4A7E', votes: 254, image: 'meme_placeholder.png', timestamp: now - 18000000 }
+            ];
+
+            renderFeed();
+            updateTimer();
+            addLog('SYSTEM INITIALIZED');
+            
+            setInterval(updateTimer, 1000);
+            setInterval(simulateActivity, 8000);
+        }
+
+        function updateTimer() {
+            const now = Date.now();
+            const diff = rewardTimestamp - now;
+
+            if (diff <= 0) {
+                distributeRewards();
+                rewardTimestamp = now + (10 * 60 * 1000);
+                localStorage.setItem('rewardTimestamp', rewardTimestamp.toString());
+            }
+
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            document.getElementById('timer').textContent = `NEXT REWARD: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function distributeRewards() {
+            addLog('[SYSTEM] REWARD ROUND COMPLETE', 'success');
+            addLog('[SYSTEM] TOP MEMES CREDITED', 'success');
+            
+            const sorted = [...memes].sort((a, b) => b.votes - a.votes);
+            const top3 = sorted.slice(0, 3);
+            
+            top3.forEach((meme, idx) => {
+                const reward = (0.5 - idx * 0.1).toFixed(2);
+                addLog(`[REWARD] ${meme.wallet} → ${reward} SOL`, 'success');
+            });
+        }
+
+        function renderFeed() {
+            const feed = document.getElementById('memeFeed');
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            let displayMemes = [...memes];
+            
+            if (filterTop) {
+                displayMemes.sort((a, b) => b.votes - a.votes);
+            } else {
+                displayMemes.sort((a, b) => b.timestamp - a.timestamp);
+            }
+            
+            if (query) {
+                displayMemes = displayMemes.filter(m => 
+                    m.wallet.toLowerCase().includes(query) || 
+                    m.title.toLowerCase().includes(query)
+                );
+            }
+
+            feed.innerHTML = displayMemes.map(meme => `
+                <div class="meme-card">
+                    <div class="meme-image">▭</div>
+                    <div class="meme-content">
+                        <div class="meme-header">
+                            <div>
+                                <div class="meme-title">${meme.title}</div>
+                                <div class="meme-wallet">${meme.wallet}</div>
+                            </div>
+                        </div>
+                        <div class="meme-actions">
+                            <div class="vote-section">
+                                <button class="vote-btn upvote" onclick="vote(${meme.id}, 1)">↑</button>
+                                <div class="vote-count">${meme.votes}</div>
+                                <button class="vote-btn downvote" onclick="vote(${meme.id}, -1)">↓</button>
+                            </div>
+                            <div class="reward-display">
+                                ${(meme.votes * 0.0003).toFixed(4)} SOL
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function vote(memeId, direction) {
+            const meme = memes.find(m => m.id === memeId);
+            if (meme) {
+                meme.votes += direction;
+                renderFeed();
+                updateLeaderboard();
+                
+                const action = direction > 0 ? '↑' : '↓';
+                addLog(`[VOTE] ${action} "${meme.title}"`);
+                
+                const sorted = [...memes].sort((a, b) => b.votes - a.votes);
+                const rank = sorted.findIndex(m => m.id === memeId) + 1;
+                if (rank === 1 && direction > 0) {
+                    addLog(`[RANK] "${meme.title}" → #1`);
+                }
+            }
+        }
+
+        function simulateActivity() {
+            if (memes.length > 0 && Math.random() > 0.3) {
+                const meme = memes[Math.floor(Math.random() * memes.length)];
+                const direction = Math.random() > 0.4 ? 1 : -1;
+                vote(meme.id, direction);
+            }
+        }
+
+        function addLog(message, type = '') {
+            const log = document.getElementById('systemLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (type ? ' ' + type : '');
+            entry.textContent = message;
+            log.insertBefore(entry, log.firstChild);
+            
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function updateLeaderboard() {
+            const content = document.getElementById('leaderboardContent');
+            const sorted = [...memes].sort((a, b) => b.votes - a.votes).slice(0, 10);
+            
+            content.innerHTML = sorted.map((meme, idx) => `
+                <div class="leaderboard-item">
+                    <div class="rank">#${idx + 1}</div>
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-wallet">${meme.wallet}</div>
+                        <div class="leaderboard-stats">${meme.votes} votes</div>
+                    </div>
+                    <div class="leaderboard-reward">${(meme.votes * 0.0003).toFixed(4)} SOL</div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('connectWallet').addEventListener('click', () => {
+            if (!walletConnected) {
+                walletAddress = '0x' + Math.random().toString(16).substr(2, 6).toUpperCase() + '...' + Math.random().toString(16).substr(2, 4).toUpperCase();
+                walletConnected = true;
+                document.getElementById('connectWallet').textContent = walletAddress;
+                document.getElementById('memeWallet').value = walletAddress;
+                addLog(`[WALLET] ${walletAddress} CONNECTED`, 'success');
+            }
+        });
+
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            document.getElementById('uploadModal').classList.add('active');
+        });
+
+        document.getElementById('closeUploadModal').addEventListener('click', () => {
+            document.getElementById('uploadModal').classList.remove('active');
+        });
+
+        document.getElementById('topMemesBtn').addEventListener('click', () => {
+            filterTop = !filterTop;
+            document.getElementById('topMemesBtn').style.background = filterTop ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)';
+            renderFeed();
+        });
+
+        document.getElementById('leaderboardBtn').addEventListener('click', () => {
+            document.getElementById('leaderboardSidebar').classList.add('active');
+            updateLeaderboard();
+        });
+
+        document.getElementById('closeLeaderboard').addEventListener('click', () => {
+            document.getElementById('leaderboardSidebar').classList.remove('active');
+        });
+
+        document.getElementById('searchInput').addEventListener('input', renderFeed);
+
+        document.getElementById('uploadForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('memeTitle').value;
+            const description = document.getElementById('memeDescription').value;
+            const wallet = walletConnected ? walletAddress : '0xANON...YMOUS';
+            
+            const newMeme = {
+                id: memeIdCounter++,
+                title: title,
+                wallet: wallet,
+                votes: 0,
+                image: 'meme_placeholder.png',
+                timestamp: Date.now()
+            };
+            
+            memes.unshift(newMeme);
+            renderFeed();
+            
+            addLog(`[UPLOAD] NEW MEME: "${title}"`, 'success');
+            addLog('[SYSTEM] AWAITING COMMUNITY VOTES');
+            
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('uploadForm').reset();
+            document.getElementById('fileDisplay').textContent = 'SELECT IMAGE OR DROP FILE';
+            
+            if (walletConnected) {
+                document.getElementById('memeWallet').value = walletAddress;
+            }
+        });
+
+        document.getElementById('memeFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileDisplay').textContent = file.name.toUpperCase();
+            }
+        });
+
+        document.getElementById('uploadModal').addEventListener('click', (e) => {
+            if (e.target.id === 'uploadModal') {
+                document.getElementById('uploadModal').classList.remove('active');
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
